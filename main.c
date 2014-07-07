@@ -1,13 +1,75 @@
-#include "fwdList.h"
-#include "arc.h"
-#include "digraph.h"
-
+/* Bibliotecas */
 #include <stdio.h>
 #include <stdlib.h>
+
+/* Headers */
+#include "fwdList.h"
+#include "cycle.h"
+#include "arc.h"
+#include "digraph.h"
 	
 List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G);
 
+void dfsR(List **tree, Vertex x, int *prnt, int *dpth, int *ys, int *costVector);
+
+
+void dfsR(List **tree, Vertex x, int *prnt, int *dpth, int *ys, int *costVector){
+	List *aux;
+	Arc *arcAux;
+	for(aux = tree[x]; next(aux) != NULL; aux = next(aux)){
+		arcAux = getArc(next(aux));
+		/* Se o início do arco é em x */
+		if(getVertexX(arcAux) == x){
+			if(dpth[getVertexW(arcAux)] == -1){
+				prnt[getVertexW(arcAux)] = x; /* No arco X->W indica que X é pai de W */
+				dpth[getVertexW(arcAux)] = dpth[x] + 1; /* Aumentamos a profundidade do vertice W baseado em seu pai X */
+				ys[getVertexW(arcAux)] = ys[x] + costVector[getCost(arcAux)]; /* Como é um arco X->W, y[W] = y[X] + c(X->W) */
+				dfsR(tree, getVertexW(arcAux), prnt, dpth, ys, costVector);
+			}
+		}
+		/* Se o fim do arco é em x (arco contrário) */
+		else {
+			if(dpth[getVertexX(arcAux)] == -1){
+				prnt[getVertexX(arcAux)] = x; /* Na árvore, o arco é W->X mas chegamos em W atraves do X, então X é pai de W */
+				dpth[getVertexX(arcAux)] = dpth[x] + 1; /* Como X é pai de W, dpth[W] = dpth[X] + 1 */
+				ys[getVertexX(arcAux)] = ys[x] - costVector[getCost(arcAux)]; /* como o arco é W->X e só sabemos o valor de y[X], então y[X] = y[W] + c(W->X) => y[W] = y[X] - c(W->X)*/
+				dfsR(tree, getVertexX(arcAux), prnt, dpth, ys, costVector);
+			}
+		}
+	}
+}
+
 List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G){
+	Vertex aux;
+	Cycle *ciclo;
+	int *ys;
+	int *parent;
+	int *depth; 
+
+	parent = malloc((G->V)*sizeof(int));
+	depth = malloc((G->V)*sizeof(int));
+	ys = malloc((G->V)*sizeof(int));
+	ciclo = initCycle();
+
+
+
+	/* Inicializações para a DFS */
+	for(aux = 0; aux < G->V; aux++){
+		ys[aux] = depth[aux] = parent[aux] = -1;
+	}
+	parent[origem] = G->V;
+	depth[origem] = 0;
+	ys[origem] = 0;
+
+	/* Primeiro chamamos a recursão da busca em profundidade para o 1o vértice (origem). Como
+	   nós estamos percorrendo um grafo que já é uma árvore, nos com certeza formaremos uma árvore
+	   no vetor "parent", sendo assim, só precisamos chamar a recursão explicitamente nesse momento,
+	   pois o processo recursivo irá percorrer o resto da árvore automaticamente.                     */
+	dfsR(tree, origem, parent, depth, ys, costVector);
+
+
+
+
 	return tree;
 }
 

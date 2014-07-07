@@ -13,6 +13,8 @@ typedef struct arc{
 	int flow;
 } Arc;
 
+
+
 Arc *newArc(Vertex x, Vertex w, int custo, int fluxo);
 
 int getFlow(Arc *a);

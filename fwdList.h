@@ -3,10 +3,14 @@
 
 #include "arc.h"
 
+/* Nosso "struct list" é uma lista de células, onde cada célula possui os campos arc e next. 
+   arc é um ponteiro para um objeto Arc e next é um ponteiro para o proximo elemento da lista. */
 typedef struct list {
 	Arc *arc;
 	struct list *next;
 } List;
+
+
 
 List *initList();
 

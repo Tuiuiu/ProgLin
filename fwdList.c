@@ -34,7 +34,7 @@ Arc *getArc(List *A){
 	return A->arc;
 }
 
-
+/* Recebe uma lista e 2 vertices x e w e verifica se na lista existe o arco x->w e o retorna */
 Arc *hasArc(List *A, Vertex x, Vertex w){
 	List *aux;
 	for(aux = next(A); aux != NULL; aux = next(aux) ){
@@ -43,6 +43,7 @@ Arc *hasArc(List *A, Vertex x, Vertex w){
 	return NULL;
 }
 
+/* Recebe dois arcos e verifica se são o mesmo */
 int isEqual(Arc *a, Arc *b){
 	if (getVertexX(a) == getVertexX(b) &&
 		getVertexW(a) == getVertexW(b) &&
