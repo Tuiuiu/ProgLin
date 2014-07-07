@@ -26,6 +26,7 @@ List *removeNext(List *A){
 	List *aux;
 	aux = A->next;
 	A->next = aux->next;
+	aux->next = NULL;
 	return aux; 
 }
 
