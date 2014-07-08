@@ -39,7 +39,9 @@ Arc *getArc(List *A){
 Arc *hasArc(List *A, Vertex x, Vertex w){
 	List *aux;
 	for(aux = A; next(aux) != NULL; aux = next(aux) ){
-		if(getVertexX(getArc(next(aux))) == x && getVertexW(getArc(next(aux))) == w) { return getArc(next(aux)); }
+		if(getVertexX(getArc(next(aux))) == x && getVertexW(getArc(next(aux))) == w) { 
+			return getArc(next(aux)); 
+		}
 	}
 	return NULL;
 }

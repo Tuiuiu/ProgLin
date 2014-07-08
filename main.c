@@ -1,3 +1,18 @@
+/*******************************************************************
+   Nome : Lucas Dário
+   No USP : 7990940
+*******************************************************************
+
+Para rodar o EP, basta utilizar o comando "make" no terminal, o arquivo
+do makefile cuidará da compilação.
+Para execução, " ./EP < <nome do arquivo de entrada>  " imprimirá
+a resposta no terminal.
+
+*******************************************************************/
+
+
+
+
 /* Bibliotecas */
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,31 +153,14 @@ int main(){
 	   que só há 1 sorvedouro no nosso problema em questão.                                 */
 	setFlow(hasArc(tree[destino], vInicial, destino), qtdProduto);
 
-/***************************************************/
-	printf("O V INICIAL É : %d\n\n", vInicial);
-	printf("ORIGEM: %d E DESTINO %d\n\n", origem, destino);
-	for(i = 0; i < V; i++){
-		for(aux = tree[i]; next(aux) != NULL; aux = next(aux)){
-			printf("%d %d %d %d BOLADO\n", getVertexX(getArc(next(aux))), getVertexW(getArc(next(aux))), custosReais[getCost(getArc(next(aux)))], getFlow(getArc(next(aux))));
-		}
-	}
-	printf("\n\n\n");
-	for(i = 0; i < V; i++){
-		for(aux = getAdj(G)[i]; next(aux) != NULL; aux = next(aux)){
-			printf("%d %d %d %d BOLADO\n", getVertexX(getArc(next(aux))), getVertexW(getArc(next(aux))), custosReais[getCost(getArc(next(aux)))], getFlow(getArc(next(aux))));
-		}
-	}
-/************************************************/
-	printf("ANTES DO SIMPLEX ENTRA \n\n\n");
 
 	/* Vamos, agora, encontrar uma primeira solução factível (árvore válida) para iniciarmos o simplex. */
 	solucaoInicial = resolveSimplex(tree, custosArtificiais, origem, destino, G, 2, qtdProduto);
-	printf("depois do simplex \n\n");
 
 	for(i = 0; i < V; i++){
 		/* Como a lista tem cabeça, "next(solucaoInicial[i]" é o 1o elemento dela */
 		for(aux = next(solucaoInicial[i]); aux != NULL; aux = aux->next){
-			if(custosArtificiais[getCost(getArc(aux))] == 1){
+			if(custosArtificiais[getCost(getArc(aux))] == 1 && getFlow(getArc(aux)) != 0){
 				printf("O problema é inviável (A solução inicial exige a presença de um arco artificial. (O arco %d -> %d)\n", 
 					    getVertexX(getArc(aux)), getVertexW(getArc(aux)));
 				return 0;

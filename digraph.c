@@ -2,6 +2,7 @@
 
 #include "digraph.h"
 
+/* Construtor do dígrafo */
 Digraph *initDigraph(int nV, int nA, List **adjacentes){
 	Digraph *G;
 	G = malloc(sizeof(Digraph));
@@ -11,10 +12,12 @@ Digraph *initDigraph(int nV, int nA, List **adjacentes){
 	return G;
 }
 
+/* Retorna o vetor de listas de adjacencia do dígrafo */
 List **getAdj(Digraph *G){
 	return G->adj;
 }
 
+/* Libera a memoria utilizada pelo nosso dígrafo */
 void freeDigraph(Digraph *G){
 	int i;
 	for(i = 0; i < G->V; i++)

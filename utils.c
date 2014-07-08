@@ -6,16 +6,18 @@
 /* Devido ao modo como tratamos as árvores, esse método facilita quando formos executar a remoção de arcos de uma árvore */
 List *removeFromTree(List **tree, Vertex x, Vertex w){
 	List *aux1, *aux2;
-	List *aux;
+	List *auxA, *auxB;
 
-	for(aux = tree[x]; next(aux) != NULL; aux = next(aux)){
-		if(getVertexX(getArc(next(aux))) == x && getVertexW(getArc(next(aux))) == w){
-			aux1 = removeNext(aux); 
+	for(auxA = tree[x]; next(auxA) != NULL; auxA = next(auxA)){
+		if(getVertexX(getArc(next(auxA))) == x && getVertexW(getArc(next(auxA))) == w){
+			aux1 = removeNext(auxA); 
+			break;
 		}
 	}
-	for(aux = tree[w]; next(aux) != NULL; aux = next(aux)){
-		if(getVertexX(getArc(next(aux))) == x && getVertexW(getArc(next(aux))) == w){
-			aux2 = removeNext(aux);
+	for(auxB = tree[w]; next(auxB) != NULL; auxB = next(auxB)){
+		if(getVertexX(getArc(next(auxB))) == x && getVertexW(getArc(next(auxB))) == w){
+			aux2 = removeNext(auxB);
+			break;
 		}
 	}
 	if(isEqual(getArc(aux1), getArc(aux2))) return aux1;
@@ -99,7 +101,6 @@ List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Dig
 
 	/* Calculamos os Ys da primeira solução do simplex (obtida na 1a fase do algoritmo) para iniciarmos a 2a fase */
 	calculaYs(costVector, parent, depth, ys, origem, G->V, tree);
-printf("depois dos Y's\n\n");
 	while(alteracoes != 0){
 		alteracoes = 0;
 		for(aux1 = 0; aux1 < G->V; aux1++){
@@ -114,11 +115,9 @@ printf("depois dos Y's\n\n");
 				if(costVector[getCost(arcAux)] == infinito){
 					listAux1 = removeNext(listAux);
 					freeList(listAux1);
-					printf("CUSTINFINITO\n\n");
 				}
 				/* Como o arco está no grafo, vale que G->adj[i] contem os arcos da forma i->W com qualquer W != i */
 				else if((ys[wAux]) > (ys[xAux] + costVector[getCost(arcAux)])){
-					printf("AQUI1\n\n");
 					/* Removemos o arco do grafo (sem a árvore) e o inserimos na árvore */
 					listAux1 = removeNext(listAux);
 					arcAux = getArc(listAux1);
@@ -212,47 +211,36 @@ printf("depois dos Y's\n\n");
 						/* Arcos contra o ciclo. Aqui nós decrementamos seu fluxo pelo valor de delta e,
 						   caso o arco analisado seja o que deve sair, o retiramos da arvore e o 
 						   inserimos de volta ao grafo.                                                  */
-						printf("AQUI3\n\n");
 						if(getDirection(cicloAux1) == 0){
 							arcAux = getArcFromCycle(cicloAux1);
 							setFlow(arcAux, getFlow(arcAux)-delta);
-							printf("antes do fifififif\n\n");
 							if(isEqual(arcAux, arcoASair)){
-								printf("dentrodoiff\n\n");
 								/* Removo da árvore o arco X-W */
 								listAux2 = removeFromTree(tree, getVertexX(arcAux), getVertexW(arcAux));
-								printf("depoisdolistaux\n");
 								/* E o insiro no Grafo (que contém todos arcos fora da árvore) */
 								insertArc(getAdj(G)[getVertexX(arcAux)], arcAux);
-								printf("depoisdoinsert\n");
 							}
 							cicloAux = cicloAux1;
 							cicloAux1 = nextOnCycle(cicloAux);
-							printf("aquidentro\n\n");
 						}
 						else{ /* getDirection(cicloAux1) == 1 */
 						/* Arcos a favor do ciclo. Apenas incrementamos os fluxos pelo valor de delta */
-							printf("antesdoelse\n\n");
 							arcAux = getArcFromCycle(cicloAux1);
 							setFlow(arcAux, getFlow(arcAux) + delta);
 							cicloAux = cicloAux1;
 							cicloAux1 = nextOnCycle(cicloAux);
-							printf("else\n\n");
 						}
 					}
-					printf("ANTES DE TERMINAR O PASSO DOS CICLUX\n\n");
 					/* Liberamos os ponteiros do ciclo */
 					freeCycle(ciclo);
 					/* Após removido um dos arcos do ciclo, voltamos a ter uma árvore, assim, recalcularemos os Ys */
 					calculaYs(costVector, parent, depth, ys, origem, G->V, tree);
 					/* Termina aqui o caso onde inserimos um arco novo na árvore e retiramos um dos que formam o ciclo */
-					printf("depois de calcular os YPSILUNDOSCICLU\n\n");
 				}
 				/* Arco não deve ser inserido, logo, apenas avançamos */
-				else { listAux = next(listAux); printf("TONOELSEMOSSADA!\n\n");}
+				else { listAux = next(listAux); }
 			}
 		}
-		printf("COMENTARIOZAO\n\n");
 		/* Ao fim desse laço, teremos percorrido o grafo todo, inserindo arcos pertinentes e 
 		   removendo arcos nos casos onde formamos ciclos. Caso algum arco tenha sido inserido (tenha
 		   ocorrido alteração na árvore), nossa variavel "alteracao" passa a valer 1, sinalizando que o 
