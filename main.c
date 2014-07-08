@@ -127,7 +127,18 @@ int main(){
 
 		}
 	}
-	/**/
+
+	/* Procuramos por um arco com vertice inicial em "origem" entre os adjacentes a "origem"
+	   e com vértice final em "vInicial", e então inserimos todo o fluxo nesse arco, dado 
+	   que só há 1 fonte no nosso problema em questão.                                       */
+	setFlow(hasArc(tree[origem], origem, vInicial), qtdProduto);
+
+	/* Procuramos por um arco com vértice final em "destino" entre os adjacentes a "destino"
+	   e com vértice inicial em "vInicial", e então inserimos todo o fluxo nesse arco, dado
+	   que só há 1 sorvedouro no nosso problema em questão.                                 */
+	setFlow(hasArc(tree[destino], vInicial, destino), qtdProduto);
+
+/***************************************************/
 	printf("O V INICIAL É : %d\n\n", vInicial);
 	printf("ORIGEM: %d E DESTINO %d\n\n", origem, destino);
 	for(i = 0; i < V; i++){
@@ -141,24 +152,12 @@ int main(){
 			printf("%d %d %d %d BOLADO\n", getVertexX(getArc(next(aux))), getVertexW(getArc(next(aux))), custosReais[getCost(getArc(next(aux)))], getFlow(getArc(next(aux))));
 		}
 	}
-	/**/
-	printf("passou?\n");
-	/* Procuramos por um arco com vertice inicial em "origem" entre os adjacentes a "origem"
-	   e com vértice final em "vInicial", e então inserimos todo o fluxo nesse arco, dado 
-	   que só há 1 fonte no nosso problema em questão.                                       */
-	printf("ANTES\n");
-	setFlow(hasArc((getAdj(G))[origem], origem, vInicial), qtdProduto);
-	printf("AQUI?\n");
-
-	/* Procuramos por um arco com vértice final em "destino" entre os adjacentes a "destino"
-	   e com vértice inicial em "vInicial", e então inserimos todo o fluxo nesse arco, dado
-	   que só há 1 sorvedouro no nosso problema em questão.                                 */
-	setFlow(hasArc(getAdj(G)[destino], vInicial, destino), qtdProduto);
-
+/************************************************/
 	printf("ANTES DO SIMPLEX ENTRA \n\n\n");
 
 	/* Vamos, agora, encontrar uma primeira solução factível (árvore válida) para iniciarmos o simplex. */
 	solucaoInicial = resolveSimplex(tree, custosArtificiais, origem, destino, G, 2, qtdProduto);
+	printf("depois do simplex \n\n");
 
 	for(i = 0; i < V; i++){
 		/* Como a lista tem cabeça, "next(solucaoInicial[i]" é o 1o elemento dela */
