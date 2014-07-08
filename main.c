@@ -64,7 +64,6 @@ int main(){
 		custosArtificiais[A] = 0;
 		A++;
 	}
-
 	G = initDigraph(V, A, adjacent);
 
 	/* Vamos selecionar um vertice "vInicial" (diferente da origem e do destino) para construirmos a árvore inicial */
@@ -78,7 +77,6 @@ int main(){
 	tree = malloc(V*sizeof(List*));
 	for(i = 0; i < V; i++)
 		tree[i] = initList();
-
 
 	/* Queremos que haja pelo menos 1 posição vazia em cada um dos vetores de custos. Vamos garantir isso aqui.
 	   Sabemos que intAux não pode ser menor que A(pois isso é garantido durante a inicialização e preenchimento 
@@ -129,16 +127,35 @@ int main(){
 
 		}
 	}
-
+	/**/
+	printf("O V INICIAL É : %d\n\n", vInicial);
+	printf("ORIGEM: %d E DESTINO %d\n\n", origem, destino);
+	for(i = 0; i < V; i++){
+		for(aux = tree[i]; next(aux) != NULL; aux = next(aux)){
+			printf("%d %d %d %d BOLADO\n", getVertexX(getArc(next(aux))), getVertexW(getArc(next(aux))), custosReais[getCost(getArc(next(aux)))], getFlow(getArc(next(aux))));
+		}
+	}
+	printf("\n\n\n");
+	for(i = 0; i < V; i++){
+		for(aux = getAdj(G)[i]; next(aux) != NULL; aux = next(aux)){
+			printf("%d %d %d %d BOLADO\n", getVertexX(getArc(next(aux))), getVertexW(getArc(next(aux))), custosReais[getCost(getArc(next(aux)))], getFlow(getArc(next(aux))));
+		}
+	}
+	/**/
+	printf("passou?\n");
 	/* Procuramos por um arco com vertice inicial em "origem" entre os adjacentes a "origem"
 	   e com vértice final em "vInicial", e então inserimos todo o fluxo nesse arco, dado 
 	   que só há 1 fonte no nosso problema em questão.                                       */
-	setFlow(hasArc(getAdj(G)[origem], origem, vInicial), qtdProduto);
+	printf("ANTES\n");
+	setFlow(hasArc((getAdj(G))[origem], origem, vInicial), qtdProduto);
+	printf("AQUI?\n");
 
 	/* Procuramos por um arco com vértice final em "destino" entre os adjacentes a "destino"
 	   e com vértice inicial em "vInicial", e então inserimos todo o fluxo nesse arco, dado
 	   que só há 1 sorvedouro no nosso problema em questão.                                 */
 	setFlow(hasArc(getAdj(G)[destino], vInicial, destino), qtdProduto);
+
+	printf("ANTES DO SIMPLEX ENTRA \n\n\n");
 
 	/* Vamos, agora, encontrar uma primeira solução factível (árvore válida) para iniciarmos o simplex. */
 	solucaoInicial = resolveSimplex(tree, custosArtificiais, origem, destino, G, 2, qtdProduto);

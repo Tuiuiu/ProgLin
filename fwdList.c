@@ -38,8 +38,8 @@ Arc *getArc(List *A){
 /* Recebe uma lista e 2 vertices x e w e verifica se na lista existe o arco x->w e o retorna */
 Arc *hasArc(List *A, Vertex x, Vertex w){
 	List *aux;
-	for(aux = next(A); aux != NULL; aux = next(aux) ){
-		if(getVertexX(getArc(aux)) == x && getVertexW(getArc(aux)) == w) return getArc(aux);
+	for(aux = A; next(aux) != NULL; aux = next(aux) ){
+		if(getVertexX(getArc(next(aux))) == x && getVertexW(getArc(next(aux))) == w) { return getArc(next(aux)); }
 	}
 	return NULL;
 }
