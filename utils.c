@@ -77,13 +77,17 @@ void calculaYs(int *costVector, int *parent, int *depth, int *ys, int origem, in
 
 
 /* Função que executa o método Simplex para redes */
-List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G, int infinito){
-	Vertex aux1;
+List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G, int infinito, int qtdProduto){
+	Vertex aux1, aux2;
 	Vertex xAux, wAux;
 	List *listAux;
-	List *listAux1;
+	List *listAux1, *listAux2;
 	Cycle *ciclo;
+	Cycle *cicloAux;
+	Cycle *cicloAux1;
 	Arc *arcAux;
+	Arc *arcoASair;
+	int delta = qtdProduto+1;
 	int alteracoes = 1;
 	int *ys;
 	int *parent;
@@ -92,8 +96,6 @@ List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Dig
 	parent = malloc((G->V)*sizeof(int));
 	depth = malloc((G->V)*sizeof(int));
 	ys = malloc((G->V)*sizeof(int));
-	ciclo = initCycle();
-
 
 	/* Calculamos os Ys da primeira solução do simplex (obtida na 1a fase do algoritmo) para iniciarmos a 2a fase */
 	calculaYs(costVector, parent, depth, ys, origem, G->V, tree);
@@ -124,20 +126,122 @@ List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Dig
 
 					/* Após a inserção de um arco, formamos um ciclo dentro da nossa árvore. Para removê-lo, 
 					   devemos procurar nesse ciclo qual dos arcos contrários à direção do ciclo deve sair   */
-										
+					ciclo = initCycle();
+					insertArcOnCycle(ciclo, arcAux, 1);
 
+
+					/* Vamos primeiramente igualar os niveis de "wAux" e "xAux", inserindo arcos no ciclo durante esse processo */
+					if(depth[xAux] > depth[wAux]){
+						while(depth[xAux] > depth[wAux]){
+							aux2 = parent[xAux];
+							if((arcAux = hasArc(tree[xAux], xAux, aux2)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 0);
+								if(getFlow(arcAux) < delta){
+									delta = getFlow(arcAux);
+									arcoASair = arcAux;
+								}
+							}
+							else if((arcAux = hasArc(tree[aux2], aux2, xAux)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 1);
+							}
+							/* Pelo jeito como depth é preenchido, depth[parent[xAux]] = depth[xAux]-1, logo */
+							xAux = aux2;
+						}
+					}	
+					else if(depth[xAux] < depth[wAux]){
+						while(depth[xAux] < depth[wAux]){
+							aux2 = parent[wAux];
+							if((arcAux = hasArc(tree[wAux], wAux, aux2)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 1);
+							}
+							else if((arcAux = hasArc(tree[aux2], aux2, wAux)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 0);
+								if(getFlow(arcAux) < delta){
+									delta = getFlow(arcAux);
+									arcoASair = arcAux;
+								}
+							}
+							/* Pelo jeito como depth é preenchido, depth[parent[wAux]] = depth[wAux]-1, logo */
+							wAux = aux2;
+						}
+					}
+
+					/* Agora, com os depth's igualados, vamos subir os 2 lados do ciclo juntamente, 
+					   até que cheguemos em um mesmo vértice, completando o ciclo                    */
+					if(depth[xAux] == depth[wAux]){
+						while(xAux != wAux){
+							/* Repetimos o que foi feito anteriormente com xAux */
+							aux2 = parent[xAux];
+							if((arcAux = hasArc(tree[xAux], xAux, aux2)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 0);
+								if(getFlow(arcAux) < delta){
+									delta = getFlow(arcAux);
+									arcoASair = arcAux;
+								}
+							}
+							else if((arcAux = hasArc(tree[aux2], aux2, xAux)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 1);
+							}
+							xAux = aux2;
+
+							/* Repetimos o que foi feito anteriormente, mas agora com o wAux */
+							aux2 = parent[wAux];
+							if((arcAux = hasArc(tree[wAux], wAux, aux2)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 1);
+							}
+							else if((arcAux = hasArc(tree[aux2], aux2, wAux)) != NULL){
+								insertArcOnCycle(ciclo, arcAux, 0);
+								if(getFlow(arcAux) < delta){
+									delta = getFlow(arcAux);
+									arcoASair = arcAux;
+								}
+							}
+							wAux = aux2;
+
+							/* O laço acima ocorrerá até que parent[xAux] = parent[wAux],  
+							   e quando isso acontecer, teremos no inicio da próxima execução
+							   que xAux = wAux. Assim, o while parará.                         */
+						} 
+					}
+					/* Agora que encontramos o ciclo, obtivemos também o "delta" e o arco que sairá do ciclo 
+					   (sai o arco que mais restringe a alteração no fluxo)                                  
+					   Sendo assim, temos :                                                                   */
+					for(cicloAux = ciclo, cicloAux1 = nextOnCycle(cicloAux); cicloAux1 != NULL; ){
+						/* Arcos contra o ciclo. Aqui nós decrementamos seu fluxo pelo valor de delta e,
+						   caso o arco analisado seja o que deve sair, o retiramos da arvore e o 
+						   inserimos de volta ao grafo.                                                  */
+						if(getDirection(cicloAux1) == 0){
+							arcAux = getArcFromCycle(cicloAux1);
+							setFlow(arcAux, getFlow(arcAux)-delta);
+							if(isEqual(arcAux, arcoASair)){
+								/* Removo da árvore o arco X-W */
+								listAux2 = removeFromTree(tree, getVertexX(arcAux), getVertexW(arcAux));
+								/* E o insiro no Grafo (que contém todos arcos fora da árvore) */
+								insertArc(getAdj(G)[getVertexX(arcAux)], arcAux);
+							}
+						}
+						else{ /* getDirection(cicloAux1) == 1 */
+						/* Arcos a favor do ciclo. Apenas incrementamos os fluxos pelo valor de delta */
+							arcAux = getArcFromCycle(cicloAux1);
+							setFlow(arcAux, getFlow(arcAux) + delta);
+						}
+					}
+					/* Liberamos os ponteiros do ciclo */
+					freeCycle(ciclo);
 					/* Após removido um dos arcos do ciclo, voltamos a ter uma árvore, assim, recalcularemos os Ys */
 					calculaYs(costVector, parent, depth, ys, origem, G->V, tree);
-
+					/* Termina aqui o caso onde inserimos um arco novo na árvore e retiramos um dos que formam o ciclo */
 				}
 				/* Arco não deve ser inserido, logo, apenas avançamos */
-				else listAux = next(listAux);
-
-
-
-
+				else { listAux = next(listAux); }
 			}
 		}
+		/* Ao fim desse laço, teremos percorrido o grafo todo, inserindo arcos pertinentes e 
+		   removendo arcos nos casos onde formamos ciclos. Caso algum arco tenha sido inserido (tenha
+		   ocorrido alteração na árvore), nossa variavel "alteracao" passa a valer 1, sinalizando que o 
+		   simplex deverá percorrer novamente o grafo em busca de arestas a serem inseridas. Quando o 
+		   algoritmo percorrer o grafo todo e nenhuma aresta for inserida, terminamos o loop e na árvore
+		   "tree" estará contida a árvore com a solução final ótima para o problema.                      */
 	}
 
 	return tree;

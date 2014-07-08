@@ -12,6 +12,6 @@ List *removeFromTree(List **tree, Vertex x, Vertex w);
 
 void dfsR(List **tree, Vertex x, int *prnt, int *dpth, int *ys, int *costVector);
 
-List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G, int infinito);
+List **resolveSimplex(List **tree, int *costVector, int origem, int destino, Digraph *G, int infinito, int qtdProduto);
 
 void calculaYs(int *costVector, int *parent, int *depth, int *ys, int origem, int V, List **tree);

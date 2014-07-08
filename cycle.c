@@ -41,6 +41,10 @@ Arc *hasArcOnCycle(Cycle *A, Vertex x, Vertex w){
 	return NULL;
 }
 
+/* Retorna a direção do arco dentro do ciclo. A favor do ciclo se direção é 1, contrária se a direção é 0 */
+int getDirection(Cycle *A){
+	return A->direction;
+}
 
 /* Insere um arco no ciclo na primeira posição (após a cabeça A) */
 void insertArcOnCycle(Cycle *A, Arc *arc, int direction){
@@ -53,14 +57,13 @@ void insertArcOnCycle(Cycle *A, Arc *arc, int direction){
 
 }
 
-/* Apagamos o ciclo, liberando a memória consumida por ele  */
+/* Apagaremos, no caso do ciclo, apenas a estrutura ciclo(os ponteiros e o inteiro), pois
+   os blocos de memoria contendo os arcos serão apagados ao fim da execução do programa    */
 void freeCycle(Cycle *A){
 	Cycle *aux1, *aux2;
 	for(aux1 = A, aux2 = A->next; aux2 != NULL; aux1 = aux2, aux2 = aux1->next){
-		freeArc(getArcFromCycle(aux1));
 		free(aux1);
 	}
-	freeArc(getArcFromCycle(aux1));
 	free(aux1);
 }
 

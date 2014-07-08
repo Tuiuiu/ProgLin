@@ -24,6 +24,8 @@ Arc *getArcFromCycle(Cycle *A);
 
 Arc *hasArcOnCycle(Cycle *A, Vertex x, Vertex y);
 
+int getDirection(Cycle *A);
+
 void insertArcOnCycle(Cycle *A, Arc *arc, int direction);
 
 void freeCycle(Cycle *A);

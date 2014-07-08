@@ -8,17 +8,15 @@
 
 int main(){
 
-	int V = 5;
-	int A = 8;
+	/* Declarações de variáveis */
+	int V;
+	int A;
 	int qtdProduto;
 	int i;
 	Vertex origem;
 	Vertex destino;
 	List *aux;
 	List *aux2;
-	Digraph *H;
-/**/
-
 	Vertex auxX;
 	Vertex auxY;
 	int auxCost;
@@ -36,33 +34,7 @@ int main(){
 	int *custosArtificiais;
 	int intAux;
 	int custoFinal;
-
-/**/
-
-	List **adj;
-	adj = malloc(V*sizeof(List*));
-	for(i = 0; i < V; i++)
-		adj[i] = initList();
-
-
-
-	insertArc(adj[0], newArc(0, 1, 1, 0));
-	insertArc(adj[0], newArc(0, 2, 3, 0));
-	insertArc(adj[0], newArc(0, 4, 4, 0));
-	insertArc(adj[1], newArc(1, 2, 9, 0));
-	insertArc(adj[2], newArc(2, 3, 8, 0));
-	insertArc(adj[2], newArc(2, 4, 7, 0));
-	insertArc(adj[3], newArc(3, 4, 2, 0));
-
-	H = initDigraph(V, A, adj);
-
-
-	for(i = 0; i < V; i++){
-		for(aux = next(H->adj[i]); aux != NULL; aux = next(aux)){
-			printf(" arco: de %d a %d custo %d fluxo %d\n", i, getVertexW(getArc(aux)), getCost(getArc(aux)), getFlow(getArc(aux)));
-		}
-	}
-
+	/***************************/
 
 
 	/* Inicialização - recebendo a entrada */
@@ -80,8 +52,8 @@ int main(){
 	scanf("%d", &qtdProduto);
 	while(scanf("%d %d %d", &auxX, &auxY, &auxCost)!= EOF){
 		arcAux1 = newArc(auxX, auxY, A, 0);
-		insertArc(adj[auxX], arcAux1);
-		insertArc(adj[auxY], arcAux1);
+		insertArc(adjacent[auxX], arcAux1);
+		/*insertArc(adj[auxY], arcAux1);*/
 		infinito += auxCost;
 		if(A == intAux){
 			intAux *= 2;
@@ -125,20 +97,22 @@ int main(){
 	for(i = 0; i < V; i++){
 		if(i != vInicial){
 			/* Se existir arco "i->vInicial" com i != destino, adcionamos à árvore inicial */
-			if( (i != destino) && (arcAux = hasArc(getAdj(G)[i], i, vInicial) != NULL)){
+			if( (i != destino) && ((arcAux = hasArc(getAdj(G)[i], i, vInicial)) != NULL)){
+				/* 'For' executado apenas para posicionar "aux" */
 				for (aux = getAdj(G)[i], aux2 = next(aux); !isEqual(getArc(aux2), arcAux); aux = aux2, aux2 = next(aux));
 				arcAux2 = getArc(removeNext(aux));
 				insertArc(tree[i], arcAux2);
 				insertArc(tree[vInicial], arcAux2);
 			}
 			/* Se existir arco "vInicial->i" com i != origem, adcionamos à árvore inicial */
-			else if( (i != origem) && (arcAux = hasArc(getAdj(G)[vInicial], vInicial, i) != NULL)){
+			else if( (i != origem) && ((arcAux = hasArc(getAdj(G)[vInicial], vInicial, i)) != NULL)){
+				/* 'For' executado apenas para posicionar "aux" */
 				for (aux = getAdj(G)[vInicial], aux2 = next(aux); !isEqual(getArc(aux2), arcAux); aux = aux2, aux2 = next(aux));
 				arcAux2 = getArc(removeNext(aux));
 				insertArc(tree[vInicial], arcAux2);
 				insertArc(tree[i], arcAux2);
 			}
-			/* Caso não haja arco "i->vInicial" nem "vInicial->i", criamos S.P.G. um arco artificial "vInicial->i" de custo infinito 
+			/* Caso não haja arco "i->vInicial" nem "vInicial->i", criamos S.P.G., um arco artificial "vInicial->i" de custo infinito 
 			   (a menos que i seja a origem, aí criamos um arco de i->vInicial)                                                      */
 			else{
 				if(i != origem) {
@@ -167,7 +141,7 @@ int main(){
 	setFlow(hasArc(getAdj(G)[destino], vInicial, destino), qtdProduto);
 
 	/* Vamos, agora, encontrar uma primeira solução factível (árvore válida) para iniciarmos o simplex. */
-	solucaoInicial = resolveSimplex(tree, custosArtificiais, origem, destino, G, 2);
+	solucaoInicial = resolveSimplex(tree, custosArtificiais, origem, destino, G, 2, qtdProduto);
 
 	for(i = 0; i < V; i++){
 		/* Como a lista tem cabeça, "next(solucaoInicial[i]" é o 1o elemento dela */
@@ -186,8 +160,8 @@ int main(){
 	/********************************************************************************************************************/
 	printf("Executando Simplex... \n");
 
-	solucaoFinal = resolveSimplex(solucaoInicial, custosReais, origem, destino, G, infinito+1);
-
+	solucaoFinal = resolveSimplex(solucaoInicial, custosReais, origem, destino, G, infinito+1, qtdProduto);
+	/* Nossa solucaoFinal sera uma arvore que minimiza a função objetivo */
 
 	/********************************************************************************************************/
 	/* A partir daqui, entramos na 3ª fase do programa, onde imprimimos a solução final no terminal.        */
@@ -199,14 +173,15 @@ int main(){
 	custoFinal = 0;
 	printf("Arcos na árvore de custos mínimos: ");
 	for(i = 0; i < V; i++){
-		/*****************************************************************************************************
-		** Como os arcos estão aparecendo 2 vezes, tenho que arrancar o 2o que aparece na arvore! ************
-		**************************FALTA ISSO ^ **************************************************************/
+		/* Varremos a árvore da solução final, eliminando arco a arco e imprimindo seus dados na resposta */
 		for(aux = solucaoFinal[i]; next(aux) != NULL; ){
-			arcAux = getArc(removeNext(aux));
+			arcAux = getArc(next(aux));
+			auxX = getVertexX(arcAux);
+			auxY = getVertexW(arcAux);
 			printf("%d -> %d custo : %d  fluxo : %d \n", 
 			        getVertexX(arcAux), getVertexW(arcAux), custosReais[getCost(arcAux)], getFlow(arcAux));
 			custoFinal += (custosReais[getCost(arcAux)]) * getFlow(arcAux);
+			freeList(removeFromTree(solucaoFinal, auxX, auxY));
 		}
 	}
 
@@ -215,9 +190,10 @@ int main(){
 
 	for(i = 0; i < V; i++){
 		for(aux = getAdj(G)[i]; next(aux) != NULL; ){
-			arcAux = getArc(removeNext(aux));
+			arcAux = getArc(next(aux));
 			printf("%d -> %d custo : %d  fluxo : 0 \n", 
 			        getVertexX(arcAux), getVertexW(arcAux), custosReais[getCost(arcAux)]);
+			freeList(removeNext(aux));
 		}
 	}
 
